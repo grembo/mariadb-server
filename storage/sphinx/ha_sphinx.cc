@@ -1159,7 +1159,7 @@ static bool ParseUrl ( CSphSEShare * share, TABLE * table, bool bCreate )
 	if ( !bOk )
 	{
 		my_error ( bCreate ? ER_FOREIGN_DATA_STRING_INVALID_CANT_CREATE : ER_FOREIGN_DATA_STRING_INVALID,
-			MYF(0), table->s->connect_string );
+			MYF(0), table->s->connect_string.str);
 	} else
 	{
 		if ( share )
@@ -3509,7 +3509,7 @@ int ha_sphinx::create ( const char * name, TABLE * table_arg, HA_CREATE_INFO * )
 	if ( sError[0] )
 	{
 		my_error ( ER_CANT_CREATE_TABLE, MYF(0),
-		table_arg->s->db.str, table_arg->s->table_name, sError );
+		table_arg->s->db.str, table_arg->s->table_name.str, sError );
 		SPH_RET(-1);
 	}
 

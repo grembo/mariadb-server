@@ -47,7 +47,7 @@ static bool fk_info_append_fields(THD *thd, String *str,
 
   while ((field= it++))
   {
-    res|= append_identifier(thd, str, field->str, field->length);
+    res|= append_identifier(thd, str, field);
     res|= str->append(", ");
   }
 
@@ -79,22 +79,17 @@ static const char *fk_info_str(THD *thd, FOREIGN_KEY_INFO *fk_info)
     `db`.`tbl`, CONSTRAINT `id` FOREIGN KEY (`fk`) REFERENCES `db`.`tbl` (`fk`)
   */
 
-  res|= append_identifier(thd, &str, fk_info->foreign_db->str,
-                          fk_info->foreign_db->length);
+  res|= append_identifier(thd, &str, fk_info->foreign_db);
   res|= str.append(".");
-  res|= append_identifier(thd, &str, fk_info->foreign_table->str,
-                          fk_info->foreign_table->length);
+  res|= append_identifier(thd, &str, fk_info->foreign_table);
   res|= str.append(", CONSTRAINT ");
-  res|= append_identifier(thd, &str, fk_info->foreign_id->str,
-                          fk_info->foreign_id->length);
+  res|= append_identifier(thd, &str, fk_info->foreign_id);
   res|= str.append(" FOREIGN KEY (");
   res|= fk_info_append_fields(thd, &str, &fk_info->foreign_fields);
   res|= str.append(") REFERENCES ");
-  res|= append_identifier(thd, &str, fk_info->referenced_db->str,
-                          fk_info->referenced_db->length);
+  res|= append_identifier(thd, &str, fk_info->referenced_db);
   res|= str.append(".");
-  res|= append_identifier(thd, &str, fk_info->referenced_table->str,
-                          fk_info->referenced_table->length);
+  res|= append_identifier(thd, &str, fk_info->referenced_table);
   res|= str.append(" (");
   res|= fk_info_append_fields(thd, &str, &fk_info->referenced_fields);
   res|= str.append(')');
@@ -302,8 +297,8 @@ bool Sql_cmd_truncate_table::lock_table(THD *thd, TABLE_LIST *table_ref,
   */
   if (thd->locked_tables_mode)
   {
-    if (!(table= find_table_for_mdl_upgrade(thd, table_ref->db,
-                                            table_ref->table_name, FALSE)))
+    if (!(table= find_table_for_mdl_upgrade(thd, table_ref->db.str,
+                                            table_ref->table_name.str, FALSE)))
       DBUG_RETURN(TRUE);
 
     *hton_can_recreate= ha_check_storage_engine_flag(table->s->db_type(),
@@ -321,11 +316,12 @@ bool Sql_cmd_truncate_table::lock_table(THD *thd, TABLE_LIST *table_ref,
                          thd->variables.lock_wait_timeout, 0))
       DBUG_RETURN(TRUE);
 
-    if (!ha_table_exists(thd, table_ref->db, table_ref->table_name,
+    if (!ha_table_exists(thd, &table_ref->db, &table_ref->table_name,
                          &hton, &is_sequence) ||
         hton == view_pseudo_hton)
     {
-      my_error(ER_NO_SUCH_TABLE, MYF(0), table_ref->db, table_ref->table_name);
+      my_error(ER_NO_SUCH_TABLE, MYF(0), table_ref->db.str,
+               table_ref->table_name.str);
       DBUG_RETURN(TRUE);
     }
 
@@ -363,8 +359,8 @@ bool Sql_cmd_truncate_table::lock_table(THD *thd, TABLE_LIST *table_ref,
   else
   {
     /* Table is already locked exclusively. Remove cached instances. */
-    tdc_remove_table(thd, TDC_RT_REMOVE_ALL, table_ref->db,
-                     table_ref->table_name, FALSE);
+    tdc_remove_table(thd, TDC_RT_REMOVE_ALL, table_ref->db.str,
+                     table_ref->table_name.str, FALSE);
   }
 
   DBUG_RETURN(FALSE);
@@ -417,7 +413,7 @@ bool Sql_cmd_truncate_table::truncate_table(THD *thd, TABLE_LIST *table_ref)
     bool hton_can_recreate;
 
     if (WSREP(thd) &&
-        wsrep_to_isolation_begin(thd, table_ref->db, table_ref->table_name, 0))
+        wsrep_to_isolation_begin(thd, table_ref->db.str, table_ref->table_name.str, 0))
         DBUG_RETURN(TRUE);
     if (lock_table(thd, table_ref, &hton_can_recreate))
       DBUG_RETURN(TRUE);
@@ -428,7 +424,7 @@ bool Sql_cmd_truncate_table::truncate_table(THD *thd, TABLE_LIST *table_ref)
         The storage engine can truncate the table by creating an
         empty table with the same structure.
       */
-      error= dd_recreate_table(thd, table_ref->db, table_ref->table_name);
+      error= dd_recreate_table(thd, table_ref->db.str, table_ref->table_name.str);
 
       if (thd->locked_tables_mode && thd->locked_tables_list.reopen_tables(thd))
           thd->locked_tables_list.unlink_all_closed_tables(thd, NULL, 0);

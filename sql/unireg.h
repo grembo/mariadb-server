@@ -183,7 +183,7 @@ int rea_create_table(THD *thd, LEX_CUSTRING *frm,
                      const char *path, const char *db, const char *table_name,
                      HA_CREATE_INFO *create_info, handler *file,
                      bool no_ha_create_table);
-LEX_CUSTRING build_frm_image(THD *thd, const char *table,
+LEX_CUSTRING build_frm_image(THD *thd, const LEX_CSTRING *table,
                              HA_CREATE_INFO *create_info,
                              List<Create_field> &create_fields,
                              uint keys, KEY *key_info, handler *db_file);

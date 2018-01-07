@@ -174,7 +174,7 @@ mysql_handle_single_derived(LEX *lex, TABLE_LIST *derived, uint phases)
   DBUG_ENTER("mysql_handle_single_derived");
   DBUG_PRINT("enter", ("phases: 0x%x  allowed: 0x%x  alias: '%s'",
                        phases, allowed_phases,
-                       (derived->alias ? derived->alias : "<NULL>")));
+                       (derived->alias.str ? derived->alias.str : "<NULL>")));
   if (!lex->derived_tables)
     DBUG_RETURN(FALSE);
 
@@ -643,7 +643,7 @@ bool mysql_derived_prepare(THD *thd, LEX *lex, TABLE_LIST *derived)
   DBUG_ENTER("mysql_derived_prepare");
   bool res= FALSE;
   DBUG_PRINT("enter", ("unit: %p  table_list: %p  Alias '%s'",
-                       unit, derived, derived->alias));
+                       unit, derived, derived->alias.str));
 
   if (!unit)
     DBUG_RETURN(FALSE);
@@ -684,7 +684,7 @@ bool mysql_derived_prepare(THD *thd, LEX *lex, TABLE_LIST *derived)
                                   (first_select->options |
                                    thd->variables.option_bits |
                                    TMP_TABLE_ALL_COLUMNS),
-                                  derived->alias, FALSE, FALSE, FALSE, 0);
+                                  &derived->alias, FALSE, FALSE, FALSE, 0);
     thd->create_tmp_table_for_derived= FALSE;
 
     if (!res && !derived->table)
@@ -777,7 +777,7 @@ bool mysql_derived_prepare(THD *thd, LEX *lex, TABLE_LIST *derived)
                                                    (first_select->options |
                                                    thd->variables.option_bits |
                                                    TMP_TABLE_ALL_COLUMNS),
-                                                   derived->alias,
+                                                   &derived->alias,
                                                    FALSE, FALSE, FALSE,
                                                    0))
   { 
@@ -802,8 +802,8 @@ exit:
         thd->get_stmt_da()->sql_errno() == ER_SP_DOES_NOT_EXIST))
     {
       thd->clear_error();
-      my_error(ER_VIEW_INVALID, MYF(0), derived->db,
-               derived->table_name);
+      my_error(ER_VIEW_INVALID, MYF(0), derived->db.str,
+               derived->table_name.str);
     }
   }
 

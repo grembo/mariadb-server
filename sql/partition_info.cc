@@ -1629,8 +1629,8 @@ void partition_info::print_no_partition_found(TABLE *table_arg, myf errflag)
   THD *thd= current_thd;
 
   bzero(&table_list, sizeof(table_list));
-  table_list.db= table_arg->s->db.str;
-  table_list.table_name= table_arg->s->table_name.str;
+  table_list.db= table_arg->s->db;
+  table_list.table_name= table_arg->s->table_name;
 
   if (check_single_table_access(thd,
                                 SELECT_ACL, &table_list, TRUE))

@@ -2256,7 +2256,8 @@ void st_select_lex::init_select()
   group_list.empty();
   if (group_list_ptrs)
     group_list_ptrs->clear();
-  type= db= 0;
+  type= 0;
+  db= null_clex_str;
   having= 0;
   table_join_options= 0;
   in_sum_expr= with_wild= 0;
@@ -3264,8 +3265,7 @@ uint8 LEX::get_effective_with_check(TABLE_LIST *view)
   case of success
 */
 
-bool
-LEX::copy_db_to(const char **p_db, size_t *p_db_length) const
+bool LEX::copy_db_to(LEX_CSTRING *to)
 {
   if (sphead && sphead->m_name.str)
   {
@@ -3274,12 +3274,10 @@ LEX::copy_db_to(const char **p_db, size_t *p_db_length) const
       It is safe to assign the string by-pointer, both sphead and
       its statements reside in the same memory root.
     */
-    *p_db= sphead->m_db.str;
-    if (p_db_length)
-      *p_db_length= sphead->m_db.length;
+    *to= sphead->m_db;
     return FALSE;
   }
-  return thd->copy_db_to(p_db, p_db_length);
+  return thd->copy_db_to(to);
 }
 
 /**
@@ -6008,7 +6006,7 @@ sp_name *LEX::make_sp_name(THD *thd, const LEX_CSTRING *name)
   sp_name *res;
   LEX_CSTRING db;
   if (check_routine_name(name) ||
-      copy_db_to(&db.str, &db.length) ||
+      copy_db_to(&db) ||
       (!(res= new (thd->mem_root) sp_name(&db, name, false))))
     return NULL;
   return res;

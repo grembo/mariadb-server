@@ -2467,7 +2467,7 @@ const char *get_canonical_filename(handler *file, const char *path,
   The .frm file will be deleted only if we return 0.
 */
 int ha_delete_table(THD *thd, handlerton *table_type, const char *path,
-                    const char *db, const char *alias, bool generate_warning)
+                    const LEX_CSTRING *db, const LEX_CSTRING *alias, bool generate_warning)
 {
   handler *file;
   char tmp_path[FN_REFLEN];
@@ -2500,12 +2500,9 @@ int ha_delete_table(THD *thd, handlerton *table_type, const char *path,
       dummy_share.path.str= (char*) path;
       dummy_share.path.length= strlen(path);
       dummy_share.normalized_path= dummy_share.path;
-      dummy_share.db.str= (char*) db;
-      dummy_share.db.length= strlen(db);
-      dummy_share.table_name.str= (char*) alias;
-      dummy_share.table_name.length= strlen(alias);
-      dummy_table.alias.set(alias, dummy_share.table_name.length,
-                            table_alias_charset);
+      dummy_share.db= *db;
+      dummy_share.table_name= *alias;
+      dummy_table.alias.set(alias->str, alias->length, table_alias_charset);
       file->change_table_ptr(&dummy_table, &dummy_share);
       file->print_error(error, MYF(intercept ? ME_JUST_WARNING : 0));
     }
@@ -5194,7 +5191,7 @@ private:
         *hton will be NULL.
 */
 
-bool ha_table_exists(THD *thd, const char *db, const char *table_name,
+bool ha_table_exists(THD *thd, const LEX_CSTRING *db, const LEX_CSTRING *table_name,
                      handlerton **hton, bool *is_sequence)
 {
   handlerton *dummy;
@@ -5209,7 +5206,7 @@ bool ha_table_exists(THD *thd, const char *db, const char *table_name,
     is_sequence= &dummy2;
   *is_sequence= 0;
 
-  TDC_element *element= tdc_lock_share(thd, db, table_name);
+  TDC_element *element= tdc_lock_share(thd, db->str, table_name->str);
   if (element && element != MY_ERRPTR)
   {
     if (hton)
@@ -5221,8 +5218,8 @@ bool ha_table_exists(THD *thd, const char *db, const char *table_name,
 
   char path[FN_REFLEN + 1];
   size_t path_len = build_table_filename(path, sizeof(path) - 1,
-                                         db, table_name, "", 0);
-  st_discover_existence_args args= {path, path_len, db, table_name, 0, true};
+                                         db->str, table_name->str, "", 0);
+  st_discover_existence_args args= {path, path_len, db->str, table_name->str, 0, true};
 
   if (file_ext_exists(path, path_len, reg_ext))
   {
@@ -5265,14 +5262,12 @@ bool ha_table_exists(THD *thd, const char *db, const char *table_name,
   {
     TABLE_LIST table;
     uint flags = GTS_TABLE | GTS_VIEW;
-
     if (!hton)
       flags|= GTS_NOLOCK;
 
     Table_exists_error_handler no_such_table_handler;
     thd->push_internal_handler(&no_such_table_handler);
-    table.init_one_table(db, strlen(db), table_name, strlen(table_name),
-                         table_name, TL_READ);
+    table.init_one_table(db, table_name, 0, TL_READ);
     TABLE_SHARE *share= tdc_acquire_share(thd, &table, flags);
     thd->pop_internal_handler();
 
