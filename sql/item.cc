@@ -6046,8 +6046,7 @@ bool Item_field::fix_fields(THD *thd, Item **reference)
   
   if (thd->lex->current_select->in_tvc)
   {
-    my_error(ER_FIELD_REFERENCE_IN_TVC, MYF(0),
-             full_name(), thd->where);
+    my_error(ER_FIELD_REFERENCE_IN_TVC, MYF(0), full_name());
     return(1);
   }
 

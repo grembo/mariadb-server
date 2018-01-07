@@ -2109,7 +2109,7 @@ innobase_check_index_keys(
 
 			if (0 == strcmp(key.name.str, key2.name.str)) {
 				my_error(ER_WRONG_NAME_FOR_INDEX, MYF(0),
-					 key.name);
+					 key.name.str);
 
 				return(ER_WRONG_NAME_FOR_INDEX);
 			}
@@ -2172,7 +2172,7 @@ innobase_check_index_keys(
 			}
 #endif /* MYSQL_RENAME_INDEX */
 
-			my_error(ER_WRONG_NAME_FOR_INDEX, MYF(0), key.name);
+			my_error(ER_WRONG_NAME_FOR_INDEX, MYF(0), key.name.str);
 
 			return(ER_WRONG_NAME_FOR_INDEX);
 		}
