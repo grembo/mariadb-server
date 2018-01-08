@@ -351,15 +351,6 @@ inline TABLE_LIST *find_table_in_global_list(TABLE_LIST *table,
                             db_name, table_name);
 }
 
-inline TABLE_LIST *find_table_in_local_list(TABLE_LIST *table,
-                                            const char *db_name,
-                                            const char *table_name)
-{
-  return find_table_in_list(table, &TABLE_LIST::next_local,
-                            db_name, table_name);
-}
-
-
 inline bool setup_fields_with_no_wrap(THD *thd, Ref_ptr_array ref_pointer_array,
                                       List<Item> &item,
                                       enum_mark_columns mark_used_columns,
