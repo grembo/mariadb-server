@@ -643,10 +643,10 @@ bool mysql_create_view(THD *thd, TABLE_LIST *views,
   if (!res && mysql_bin_log.is_open())
   {
     String buff;
-    const LEX_STRING command[3]=
-      {{ C_STRING_WITH_LEN("CREATE ") },
-       { C_STRING_WITH_LEN("ALTER ") },
-       { C_STRING_WITH_LEN("CREATE OR REPLACE ") }};
+    const LEX_CSTRING command[3]=
+      {{ STRING_WITH_LEN("CREATE ") },
+       { STRING_WITH_LEN("ALTER ") },
+       { STRING_WITH_LEN("CREATE OR REPLACE ") }};
 
     buff.append(&command[thd->lex->create_view->mode]);
     view_store_options(thd, views, &buff);
