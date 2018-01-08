@@ -319,7 +319,7 @@ public:
       LEX_STRING tmp_str;
       if (copy_event_cache_to_string_and_reinit(m_cache, &tmp_str))
         exit(1);
-      m_ev->output_buf.append(&tmp_str);
+      m_ev->output_buf.append(tmp_str.str, tmp_str.length);  // Not \0 term
       my_free(tmp_str.str);
     }
 #else /* MySQL_SERVER */
@@ -11285,14 +11285,14 @@ void Rows_log_event::print_helper(FILE *file,
     LEX_STRING tmp_str;
 
     copy_event_cache_to_string_and_reinit(head, &tmp_str);
-    output_buf.append(&tmp_str);
+    output_buf.append(tmp_str.str, tmp_str.length);  // Not \0 terminated
     my_free(tmp_str.str);
     copy_event_cache_to_string_and_reinit(body, &tmp_str);
-    output_buf.append(&tmp_str);
+    output_buf.append(tmp_str.str, tmp_str.length);
     my_free(tmp_str.str);
 #ifdef WHEN_FLASHBACK_REVIEW_READY
     copy_event_cache_to_string_and_reinit(sql, &tmp_str);
-    output_buf.append(&tmp_str);
+    output_buf.append(tmp_str.str, tmp_str.length);
     my_free(tmp_str.str);
 #endif
   }
